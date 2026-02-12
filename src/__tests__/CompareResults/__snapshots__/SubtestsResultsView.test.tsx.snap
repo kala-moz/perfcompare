@@ -751,7 +751,7 @@ exports[`SubtestsResultsView Component Tests should render the subtests results 
               role="table"
             >
               <div
-                class="f1x2b91i f1l733lh"
+                class="f1y33yv5 f1l733lh"
                 data-testid="table-header"
                 role="row"
               >
@@ -882,7 +882,7 @@ exports[`SubtestsResultsView Component Tests should render the subtests results 
                   role="columnheader"
                 >
                   <div
-                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-6gd5sl-MuiButtonGroup-root"
+                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-1fyroww-MuiButtonGroup-root"
                     role="group"
                   >
                     <button
@@ -959,7 +959,7 @@ exports[`SubtestsResultsView Component Tests should render the subtests results 
                 />
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -1134,7 +1134,7 @@ exports[`SubtestsResultsView Component Tests should render the subtests results 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -1284,7 +1284,7 @@ exports[`SubtestsResultsView Component Tests should render the subtests results 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -1445,7 +1445,7 @@ exports[`SubtestsResultsView Component Tests should render the subtests results 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -1606,7 +1606,7 @@ exports[`SubtestsResultsView Component Tests should render the subtests results 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -2718,7 +2718,7 @@ exports[`SubtestsViewCompareOverTime Component Tests in mann-whitney-u testVersi
                   role="columnheader"
                 >
                   <div
-                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-6gd5sl-MuiButtonGroup-root"
+                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-1fyroww-MuiButtonGroup-root"
                     role="group"
                   >
                     <button
@@ -4161,7 +4161,7 @@ exports[`SubtestsViewCompareOverTime Component Tests in mann-whitney-u testVersi
                   role="columnheader"
                 >
                   <div
-                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-6gd5sl-MuiButtonGroup-root"
+                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-1fyroww-MuiButtonGroup-root"
                     role="group"
                   >
                     <button
@@ -5604,7 +5604,7 @@ exports[`SubtestsViewCompareOverTime Component Tests renders over-time view when
                   role="columnheader"
                 >
                   <div
-                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-6gd5sl-MuiButtonGroup-root"
+                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-1fyroww-MuiButtonGroup-root"
                     role="group"
                   >
                     <button
@@ -6881,7 +6881,7 @@ exports[`SubtestsViewCompareOverTime Component Tests should render the subtests 
               role="table"
             >
               <div
-                class="f1x2b91i f1l733lh"
+                class="f1y33yv5 f1l733lh"
                 data-testid="table-header"
                 role="row"
               >
@@ -7012,7 +7012,7 @@ exports[`SubtestsViewCompareOverTime Component Tests should render the subtests 
                   role="columnheader"
                 >
                   <div
-                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-6gd5sl-MuiButtonGroup-root"
+                    class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-1fyroww-MuiButtonGroup-root"
                     role="group"
                   >
                     <button
@@ -7089,7 +7089,7 @@ exports[`SubtestsViewCompareOverTime Component Tests should render the subtests 
                 />
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -7264,7 +7264,7 @@ exports[`SubtestsViewCompareOverTime Component Tests should render the subtests 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -7414,7 +7414,7 @@ exports[`SubtestsViewCompareOverTime Component Tests should render the subtests 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -7575,7 +7575,7 @@ exports[`SubtestsViewCompareOverTime Component Tests should render the subtests 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div
@@ -7736,7 +7736,7 @@ exports[`SubtestsViewCompareOverTime Component Tests should render the subtests 
                 </div>
               </div>
               <div
-                class="revisionRow ffduijv f161t6v MuiBox-root css-1tzk3e"
+                class="revisionRow ffduijv f161t6v MuiBox-root css-d9rb32"
                 role="row"
               >
                 <div

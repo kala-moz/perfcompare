@@ -63,7 +63,7 @@ exports[`Results Table Should match snapshot 1`] = `
         class="container_f1h7ern2"
       >
         <div
-          class="fgqequq MuiBox-root css-0"
+          class="MuiBox-root css-i3pbo"
         >
           <a
             aria-label="link to home"
@@ -84,9 +84,9 @@ exports[`Results Table Should match snapshot 1`] = `
                   d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"
                 />
               </svg>
-              <p>
+              <span>
                 Home
-              </p>
+              </span>
             </div>
           </a>
         </div>
@@ -1246,7 +1246,7 @@ exports[`Results Table Should match snapshot 1`] = `
                     role="columnheader"
                   >
                     <div
-                      class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-6gd5sl-MuiButtonGroup-root"
+                      class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-1fyroww-MuiButtonGroup-root"
                       role="group"
                     >
                       <button
@@ -2674,7 +2674,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
         class="container_f1h7ern2"
       >
         <div
-          class="fgqequq MuiBox-root css-0"
+          class="MuiBox-root css-i3pbo"
         >
           <a
             aria-label="link to home"
@@ -2695,9 +2695,9 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
                   d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"
                 />
               </svg>
-              <p>
+              <span>
                 Home
-              </p>
+              </span>
             </div>
           </a>
         </div>
@@ -3758,7 +3758,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
                   </div>
                 </div>
                 <div
-                  class="fom0p54 f1l733lh"
+                  class="f7r8qrz f1l733lh"
                   data-testid="table-header"
                   role="row"
                 >
@@ -3896,7 +3896,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
                     role="columnheader"
                   >
                     <div
-                      class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-6gd5sl-MuiButtonGroup-root"
+                      class="MuiButtonGroup-root MuiButtonGroup-contained MuiButtonGroup-horizontal MuiButtonGroup-disableElevation MuiButtonGroup-colorTableHeaderButton css-1fyroww-MuiButtonGroup-root"
                       role="group"
                     >
                       <button
@@ -4117,7 +4117,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
                           class="fw0pvlu"
                         >
                           <div
-                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1ovr9mp"
+                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1qetnqx"
                             role="row"
                           >
                             <div
@@ -4322,7 +4322,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
                             </div>
                           </div>
                           <div
-                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1ovr9mp"
+                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1qetnqx"
                             role="row"
                           >
                             <div
@@ -4528,7 +4528,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
                             </div>
                           </div>
                           <div
-                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1ovr9mp"
+                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1qetnqx"
                             role="row"
                           >
                             <div
@@ -4802,7 +4802,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
                           class="fw0pvlu"
                         >
                           <div
-                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1ovr9mp"
+                            class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1qetnqx"
                             role="row"
                           >
                             <div
@@ -5449,7 +5449,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
       </span>
     </div>
     <div
-      class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1ovr9mp"
+      class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1qetnqx"
       role="row"
     >
       <div
@@ -5694,7 +5694,7 @@ exports[`Results Table for MannWhitneyResultsItem for mann-whitney-u testVersion
       </span>
     </div>
     <div
-      class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1ovr9mp"
+      class="revisionRow f1w6zz10 f1dlt78d MuiBox-root css-1qetnqx"
       role="row"
     >
       <div
