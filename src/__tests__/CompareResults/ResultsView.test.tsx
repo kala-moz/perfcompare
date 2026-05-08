@@ -9,6 +9,7 @@ import type {
   ScatterSeriesOption,
 } from 'echarts';
 
+import CommonGraph from '../../components/CompareResults/CommonGraph';
 import { loader } from '../../components/CompareResults/loader';
 import ResultsView from '../../components/CompareResults/ResultsView';
 import TestHeader from '../../components/CompareResults/TestHeader';
@@ -16,9 +17,10 @@ import { Strings } from '../../resources/Strings';
 import { Colors } from '../../styles/Colors';
 import type { Repository } from '../../types/state';
 import type { Framework } from '../../types/types';
+import { fftkde } from '../../utils/kde.js';
 import { getLocationOrigin } from '../../utils/location';
 import getTestData from '../utils/fixtures';
-import { renderWithRouter, screen, waitFor } from '../utils/test-utils';
+import { render, renderWithRouter, screen, waitFor } from '../utils/test-utils';
 
 function renderWithRoute(component: ReactElement) {
   const { testCompareData, testData } = getTestData();
@@ -40,6 +42,32 @@ function renderWithRoute(component: ReactElement) {
 
 jest.mock('../../utils/location');
 const mockedGetLocationOrigin = getLocationOrigin as jest.Mock;
+
+// Wrap React.useRef so individual tests can substitute a stubbed ref for the
+// next useRef call. The wrapper delegates to the real implementation when the
+// override queue is empty, so other tests in this file are unaffected.
+const mockUseRefOverrides: Array<{ current: unknown }> = [];
+
+jest.mock('react', () => {
+  const actualReact = jest.requireActual<typeof import('react')>('react');
+  // Spread loses non-enumerable React exports (Component, createElement, …)
+  // which react-router relies on; a Proxy lets us replace `useRef` while
+  // forwarding every other property to the real module.
+  return new Proxy(actualReact, {
+    get(target, prop, receiver) {
+      if (prop === 'useRef') {
+        return function wrappedUseRef<T>(initialValue: T) {
+          const override = mockUseRefOverrides.shift();
+          if (override !== undefined) {
+            return override;
+          }
+          return target.useRef(initialValue);
+        };
+      }
+      return Reflect.get(target, prop, receiver) as unknown;
+    },
+  });
+});
 
 // Pull the latest EChartsOption that the chart component pushed via
 // `instance.setOption(option)`. Each call to `init()` in the mock returns a
@@ -562,5 +590,135 @@ describe('Results View', () => {
     });
     expect(screen.queryByText('Results')).not.toBeInTheDocument();
     expect(screen.getByText(titleName)).toBeInTheDocument();
+  });
+
+  it('passes mapped KDE density tuples into the chart series', async () => {
+    // The bKde.x.map / nKde.x.map callbacks that turn
+    // fftkde's parallel x/y arrays into [x, y] tuples.
+    // The default test mock for fftkde returns empty arrays, so we override
+    // it here with deterministic values that we can assert against.
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    (fftkde as jest.Mock).mockImplementation(() => ({
+      x: [10, 20, 30],
+      y: [0.1, 0.2, 0.3],
+      bandwidth: 1,
+    }));
+
+    const { testCompareDataWithMultipleRuns, testData } = getTestData();
+    fetchMock
+      .get(
+        'begin:https://treeherder.mozilla.org/api/perfcompare/results/',
+        testCompareDataWithMultipleRuns,
+      )
+      .get('begin:https://treeherder.mozilla.org/api/project/', {
+        results: [testData[0]],
+      });
+
+    renderWithRouter(
+      <ResultsView title={Strings.metaData.pageTitle.results} />,
+      {
+        route: '/compare-results/',
+        search: '?baseRev=spam&baseRepo=mozilla-central&framework=2',
+        loader,
+      },
+    );
+
+    const expandButton = await screen.findByRole('button', {
+      name: 'expand this row',
+    });
+    await user.click(expandButton);
+
+    const option = getLatestEChartsOption();
+    const series = option.series as Array<
+      LineSeriesOption | ScatterSeriesOption
+    >;
+    const lineSeries = series.filter(
+      (entry): entry is LineSeriesOption => entry.type === 'line',
+    );
+
+    const expectedDensity = [
+      [10, 0.1],
+      [20, 0.2],
+      [30, 0.3],
+    ];
+    expect(lineSeries[0].data).toEqual(expectedDensity);
+    expect(lineSeries[1].data).toEqual(expectedDensity);
+  });
+
+  it('returns an empty string from the tooltip formatter for unknown series types', async () => {
+    // The formatter's fall-through return ''
+    // for a seriesType that is neither 'line' nor 'scatter'.
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const { testCompareDataWithMultipleRuns, testData } = getTestData();
+    fetchMock
+      .get(
+        'begin:https://treeherder.mozilla.org/api/perfcompare/results/',
+        testCompareDataWithMultipleRuns,
+      )
+      .get('begin:https://treeherder.mozilla.org/api/project/', {
+        results: [testData[0]],
+      });
+
+    renderWithRouter(
+      <ResultsView title={Strings.metaData.pageTitle.results} />,
+      {
+        route: '/compare-results/',
+        search: '?baseRev=spam&baseRepo=mozilla-central&framework=2',
+        loader,
+      },
+    );
+
+    const expandButton = await screen.findByRole('button', {
+      name: 'expand this row',
+    });
+    await user.click(expandButton);
+
+    const option = getLatestEChartsOption();
+    const formatter = (
+      option.tooltip as unknown as {
+        formatter: (param: {
+          seriesType: string;
+          seriesName: string;
+          value: unknown;
+          marker: string;
+        }) => string;
+      }
+    ).formatter;
+
+    // After the empty line is filtered out, the joined output is also ''.
+    expect(
+      formatter({
+        seriesType: 'pie',
+        seriesName: 'unknown',
+        value: [1, 2],
+        marker: 'm',
+      }),
+    ).toBe('');
+  });
+
+  it('skips chart init when the container ref has no element attached', () => {
+    const stubContainerRef = {} as { current: unknown };
+    Object.defineProperty(stubContainerRef, 'current', {
+      get: () => null,
+      set: () => {
+        /* swallow ref assignments so current stays null */
+      },
+      enumerable: true,
+      configurable: true,
+    });
+
+    // The first useRef call inside CommonGraph is for chartContainerRef; only
+    // override that one. Subsequent useRef calls fall through to real React.
+    mockUseRefOverrides.push(stubContainerRef);
+
+    const initMock = echartsInit as jest.Mock;
+    initMock.mockClear();
+
+    render(<CommonGraph baseValues={[1, 2]} newValues={[3, 4]} unit='ms' />);
+
+    expect(initMock).not.toHaveBeenCalled();
+
+    // Drain any leftover override so it can't leak into later tests.
+    mockUseRefOverrides.length = 0;
   });
 });
