@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Performance Comparison — Beginner View</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7fa;
+    --card: #ffffff;
+    --text: #1a1a26;
+    --muted: #5b5b66;
+    --border: #e0e0e6;
+    --base: #4f86c6;
+    --new: #c64f7a;
+    --good: #2e7d32;
+    --good-bg: #e6f4ea;
+    --bad: #c62828;
+    --bad-bg: #fdecea;
+    --neutral: #555c66;
+    --neutral-bg: #eceff1;
+    --warn: #b26a00;
+    --warn-bg: #fff4e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+  header.hero h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+  }
+  header.hero p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .rev-bar {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .rev-bar div b { display: block; color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rev-bar code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  .guide {
+    background: #eef3fb;
+    border: 1px solid #cfdcef;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+  }
+  .guide h2 { margin: 0 0 10px; font-size: 16px; }
+  .guide ul { margin: 0; padding-left: 20px; color: var(--text); font-size: 14px; }
+  .guide li { margin-bottom: 4px; }
+  .guide .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 12px;
+    margin-top: 6px;
+    font-size: 13px;
+  }
+  .verdict-chip {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .v-clear-improvement { background: var(--good-bg); color: var(--good); }
+  .v-likely-improvement { background: var(--good-bg); color: var(--good); opacity: 0.85; }
+  .v-no-change         { background: var(--neutral-bg); color: var(--neutral); }
+  .v-likely-regression { background: var(--bad-bg); color: var(--bad); opacity: 0.85; }
+  .v-clear-regression  { background: var(--bad-bg); color: var(--bad); }
+  .v-needs-more        { background: var(--warn-bg); color: var(--warn); }
+
+  .test-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .test-card h3 {
+    margin: 0;
+    padding: 16px 22px;
+    font-size: 16px;
+    border-bottom: 1px solid var(--border);
+    background: #fafbfd;
+  }
+  .test-card h3 .unit-hint { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 0.3fr 1fr 1fr 1.6fr 0.5fr;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .row.header {
+    background: #fafbfd;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .platform { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+  .row .platform .ico {
+    display: inline-flex;
+    width: 18px; height: 18px;
+    align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .row .val { font-variant-numeric: tabular-nums; }
+  .row .val .num { font-weight: 600; }
+  .row .val .unit { color: var(--muted); font-size: 12px; margin-left: 4px; }
+  .row .arrow { color: var(--muted); text-align: center; }
+  .row .delta {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .row .delta.good { color: var(--good); }
+  .row .delta.bad { color: var(--bad); }
+  .row .delta.neutral { color: var(--neutral); }
+  .row .verdict-cell { display: flex; justify-content: flex-start; }
+  .row .toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .row .toggle:hover { background: #f3f4f7; }
+
+  .graph-panel {
+    display: none;
+    padding: 8px 22px 22px;
+    background: #fcfcfe;
+    border-bottom: 1px solid var(--border);
+  }
+  .graph-panel.open { display: block; }
+  .graph-panel .explain {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 8px 0 10px;
+  }
+  .graph-panel .chart {
+    width: 100%;
+    height: 320px;
+  }
+
+  footer.note {
+    margin-top: 28px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+  footer.note code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <h1>PerfCompare</h1>
+    <p>We ran the same test on the old build and the new build, several times on each platform. Lower numbers are faster.</p>
+  </header>
+
+  <div class="rev-bar">
+    <div><b>Test framework</b> Talos (page load timings)</div>
+    <div><b>Base build</b> <code>coconut</code> (mozilla-central)</div>
+    <div><b>New build</b> <code>spam</code> (mozilla-central)</div>
+    <div><b>Test</b> a11yr · dhtml.html</div>
+  </div>
+
+  <section class="guide">
+    <h2>How to read this page</h2>
+    <ul>
+      <li>Each row is one platform. <b>Base</b> is the old build, <b>New</b> is your change.</li>
+      <li>The <b>Change</b> column shows how much New differs from Base. Lower is faster for this test, so green means the new build got faster.</li>
+      <li>The <b>Verdict</b> tells you whether the difference is real or just measurement noise. Computed from the Mann–Whitney U test under the hood — you don't need to know the math.</li>
+      <li>Click <b>Show distribution</b> to see every individual run plotted as a curve. Two curves that overlap = no real difference. Two curves that pull apart = a real shift.</li>
+    </ul>
+    <div style="margin-top: 10px;">
+      <span class="key"><span class="verdict-chip v-clear-improvement">Clear improvement</span> faster, with strong evidence</span>
+      <span class="key"><span class="verdict-chip v-likely-improvement">Likely improvement</span> faster, but evidence is weaker</span>
+      <span class="key"><span class="verdict-chip v-no-change">No noticeable change</span> nothing to worry about</span>
+      <span class="key"><span class="verdict-chip v-likely-regression">Likely regression</span> slower, evidence is weaker</span>
+      <span class="key"><span class="verdict-chip v-clear-regression">Clear regression</span> slower, with strong evidence</span>
+      <span class="key"><span class="verdict-chip v-needs-more">Needs more data</span> not enough runs to decide</span>
+    </div>
+  </section>
+
+  <div id="cards"></div>
+
+  <footer class="note">
+    Simplified view for new contributors. The full results page in PerfCompare exposes additional statistics (Cliff's delta, CLES, normality tests, KDE modes) for power users.
+  </footer>
+
+</div>
+
+<script>
+/* ---------- Deterministic random for reproducible demo data ---------- */
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function gen(seed, n, mean, stddev) {
+  const r = mulberry32(seed);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    // Box-Muller transform
+    const u1 = Math.max(r(), 1e-9);
+    const u2 = r();
+    const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    out.push(+(mean + stddev * z).toFixed(2));
+  }
+  return out;
+}
+
+/* ---------- Fake Mann-Whitney comparison results ----------
+   Modeled after src/__tests__/utils/fixtures.ts (testCompareMannWhitneyData)
+   but with enough samples for the density curves to be informative. */
+const results = [
+  {
+    platform: 'macOS 10.15',
+    platformIcon: '\u{1F34F}',
+    test: 'a11yr · dhtml.html',
+    unit: 'ms',
+    lower_is_better: true,
+    base_runs: gen(101, 32, 704.84, 6.2),
+    new_runs:  gen(102, 32, 707.10, 6.5),
+    // Reflects what the backend's mann_whitney_test field would return.
+    mann_whitney_pvalue: 0.31,
+  },
+  {
+    platform: 'Linux 18.04',
+    platformIcon: '\u{1F427}',
+    test: 'a11yr · dhtml.html',
+    unit: 'ms',
+    lower_is_better: true,
+    base_runs: gen(201, 32, 776.97, 5.4),
+    new_runs:  gen(202, 32, 791.34, 5.8),
+    mann_whitney_pvalue: 0.0006,
+  },
+  {
+    platform: 'Windows 10',
+    platformIcon: '\u{1FA9F}',
+    test: 'a11yr · dhtml.html',
+    unit: 'ms',
+    lower_is_better: true,
+    base_runs: gen(301, 32, 643.54, 4.8),
+    new_runs:  gen(302, 32, 628.09, 4.7),
+    mann_whitney_pvalue: 0.0021,
+  },
+  {
+    platform: 'Windows 10 (debug)',
+    platformIcon: '\u{1FA9F}',
+    test: 'a11yr · dhtml.html',
+    unit: 'ms',
+    lower_is_better: true,
+    base_runs: gen(401, 6, 851.0, 7.0),
+    new_runs:  gen(402, 6, 853.5, 8.0),
+    mann_whitney_pvalue: 0.42,
+  },
+];
+
+/* ---------- Stats helpers (kept tiny on purpose) ---------- */
+function median(arr) {
+  const s = [...arr].sort((a, b) => a - b);
+  const n = s.length;
+  return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : NaN;
+}
+function gaussianKde(data, npoints) {
+  npoints = npoints || 200;
+  const n = data.length;
+  if (n < 2) return [];
+  const mean = data.reduce((a, b) => a + b, 0) / n;
+  const variance = data.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1);
+  const stddev = Math.sqrt(variance) || (Math.max(...data) - Math.min(...data)) / 4 || 1;
+  // Silverman's rule of thumb
+  const h = 1.06 * stddev * Math.pow(n, -0.2) || 0.5;
+  const sorted = [...data].sort((a, b) => a - b);
+  const lo = sorted[0] - 4 * h;
+  const hi = sorted[sorted.length - 1] + 4 * h;
+  const pts = [];
+  for (let i = 0; i < npoints; i++) {
+    const x = lo + (hi - lo) * (i / (npoints - 1));
+    let y = 0;
+    for (let j = 0; j < n; j++) {
+      const z = (x - data[j]) / h;
+      y += Math.exp(-0.5 * z * z);
+    }
+    y /= n * h * Math.sqrt(2 * Math.PI);
+    pts.push([x, y]);
+  }
+  return pts;
+}
+
+/* ---------- Verdict logic — opinionated for beginners ---------- */
+function verdict(result) {
+  const baseMed = median(result.base_runs);
+  const newMed = median(result.new_runs);
+  const deltaPct = ((newMed - baseMed) / baseMed) * 100;
+  const lowerBetter = result.lower_is_better;
+  const newIsBetter = lowerBetter ? deltaPct < 0 : deltaPct > 0;
+  const p = result.mann_whitney_pvalue;
+  const sampleCount = Math.min(result.base_runs.length, result.new_runs.length);
+  const magnitude = Math.abs(deltaPct);
+
+  let key, label;
+  if (sampleCount < 8) {
+    key = 'v-needs-more';
+    label = 'Needs more data';
+  } else if (p < 0.01 && magnitude > 0.5) {
+    key = newIsBetter ? 'v-clear-improvement' : 'v-clear-regression';
+    label = newIsBetter ? 'Clear improvement' : 'Clear regression';
+  } else if (p < 0.05 && magnitude > 0.3) {
+    key = newIsBetter ? 'v-likely-improvement' : 'v-likely-regression';
+    label = newIsBetter ? 'Likely improvement' : 'Likely regression';
+  } else {
+    key = 'v-no-change';
+    label = 'No noticeable change';
+  }
+  return { key, label, deltaPct, baseMed, newMed, newIsBetter, sampleCount };
+}
+
+/* ---------- Rendering ---------- */
+function fmt(n, unit) {
+  return `<span class="num">${n.toFixed(2)}</span><span class="unit">${unit}</span>`;
+}
+function deltaClass(v) {
+  if (v.key === 'v-no-change' || v.key === 'v-needs-more') return 'neutral';
+  return v.newIsBetter ? 'good' : 'bad';
+}
+function deltaText(v) {
+  const sign = v.deltaPct > 0 ? '+' : '';
+  return `${sign}${v.deltaPct.toFixed(1)}%`;
+}
+
+const cardsEl = document.getElementById('cards');
+
+// Group rows by test name (single test in this demo, but keep the structure).
+const byTest = new Map();
+for (const r of results) {
+  if (!byTest.has(r.test)) byTest.set(r.test, []);
+  byTest.get(r.test).push(r);
+}
+
+let rowCounter = 0;
+const chartTasks = [];
+
+for (const [testName, rows] of byTest) {
+  const card = document.createElement('div');
+  card.className = 'test-card';
+  const unitHint = rows[0].unit ? `<span class="unit-hint">measured in ${rows[0].unit} · lower is faster</span>` : '';
+  card.innerHTML = `<h3>${testName}${unitHint}</h3>`;
+
+  const headerRow = document.createElement('div');
+  headerRow.className = 'row header';
+  headerRow.innerHTML = `
+    <div>Platform</div>
+    <div>Base</div>
+    <div></div>
+    <div>New</div>
+    <div>Change</div>
+    <div>Verdict</div>
+    <div></div>
+  `;
+  card.appendChild(headerRow);
+
+  for (const r of rows) {
+    const v = verdict(r);
+    const rowId = `row-${rowCounter++}`;
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div class="platform"><span class="ico">${r.platformIcon}</span>${r.platform}</div>
+      <div class="val">${fmt(v.baseMed, r.unit)}</div>
+      <div class="arrow">→</div>
+      <div class="val">${fmt(v.newMed, r.unit)}</div>
+      <div class="delta ${deltaClass(v)}">${deltaText(v)}</div>
+      <div class="verdict-cell"><span class="verdict-chip ${v.key}">${v.label}</span></div>
+      <div><button class="toggle" data-target="${rowId}">Show distribution</button></div>
+    `;
+    card.appendChild(row);
+
+    const panel = document.createElement('div');
+    panel.className = 'graph-panel';
+    panel.id = rowId;
+    panel.innerHTML = `
+      <div class="explain">
+        Each curve is a smoothed view of every individual run. If the blue (Base) and pink (New) humps sit on top of each other, the two builds behave the same. If they pull apart, one is consistently faster than the other.
+      </div>
+      <div class="chart" id="${rowId}-chart"></div>
+    `;
+    card.appendChild(panel);
+
+    chartTasks.push({ id: `${rowId}-chart`, runs: r, verdict: v });
+  }
+
+  cardsEl.appendChild(card);
+}
+
+/* ---------- Toggle graph panels ---------- */
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.toggle');
+  if (!btn) return;
+  const target = document.getElementById(btn.dataset.target);
+  if (!target) return;
+  const open = target.classList.toggle('open');
+  btn.textContent = open ? 'Hide distribution' : 'Show distribution';
+  if (open) {
+    const task = chartTasks.find((t) => t.id === target.querySelector('.chart').id);
+    if (task && !task.rendered) {
+      renderChart(task);
+      task.rendered = true;
+    }
+  }
+});
+
+/* ---------- Density chart (echarts) ---------- */
+function renderChart(task) {
+  const el = document.getElementById(task.id);
+  if (!el) return;
+  const chart = echarts.init(el);
+  const base = task.runs.base_runs;
+  const nw = task.runs.new_runs;
+  const baseKde = gaussianKde(base);
+  const newKde = gaussianKde(nw);
+
+  const min = Math.min(...base, ...nw) * 0.98;
+  const max = Math.max(...base, ...nw) * 1.02;
+
+  chart.setOption({
+    animation: false,
+    grid: [
+      { left: 60, right: 30, top: 36, height: 180 },
+      { left: 60, right: 30, top: 230, height: 50 },
+    ],
+    legend: { data: ['Base (old build)', 'New (your change)'], top: 4 },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'cross' },
+      formatter: (params) => {
+        const items = Array.isArray(params) ? params : [params];
+        return items.map((p) => {
+          const v = p.value;
+          if (p.seriesType === 'line') {
+            return `${p.marker}${p.seriesName} @ ${(+v[0]).toFixed(2)} ${task.runs.unit}`;
+          }
+          return `${p.marker}${p.seriesName}: ${(+v[0]).toFixed(2)} ${task.runs.unit}`;
+        }).join('<br>');
+      },
+    },
+    xAxis: [
+      { type: 'value', gridIndex: 0, min, max, axisLabel: { show: false }, splitLine: { lineStyle: { color: '#eee' } } },
+      { type: 'value', gridIndex: 1, min, max, name: `${task.runs.unit} →`, nameLocation: 'end', nameGap: 8, splitLine: { lineStyle: { color: '#eee' } } },
+    ],
+    yAxis: [
+      { type: 'value', gridIndex: 0, name: 'density', splitLine: { lineStyle: { color: '#eee' } } },
+      { type: 'category', gridIndex: 1, data: ['Base', 'New'], axisTick: { show: false } },
+    ],
+    series: [
+      { name: 'Base (old build)', type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: baseKde, showSymbol: false, lineStyle: { width: 3, color: '#4f86c6' }, areaStyle: { color: '#4f86c699' }, smooth: true },
+      { name: 'New (your change)', type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: newKde, showSymbol: false, lineStyle: { width: 3, color: '#c64f7a' }, areaStyle: { color: '#c64f7a99' }, smooth: true },
+      { name: 'Base (old build)', type: 'scatter', xAxisIndex: 1, yAxisIndex: 1, data: base.map((v) => [v, 'Base']), symbol: 'triangle', symbolSize: 10, itemStyle: { color: '#4f86c6cc' } },
+      { name: 'New (your change)', type: 'scatter', xAxisIndex: 1, yAxisIndex: 1, data: nw.map((v) => [v, 'New']), symbol: 'triangle', symbolSize: 10, itemStyle: { color: '#c64f7acc' } },
+    ],
+  });
+
+  window.addEventListener('resize', () => chart.resize());
+}
+</script>
+</body>
+</html>
