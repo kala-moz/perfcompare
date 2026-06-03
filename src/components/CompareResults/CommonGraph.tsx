@@ -8,43 +8,9 @@ import Typography from '@mui/material/Typography';
 import { init, type ECharts, type EChartsOption } from 'echarts';
 
 import { Colors } from '../../styles/Colors';
-import {
-  areaFracs,
-  assignLetters,
-  fftkde,
-  fitModesFromKde,
-} from '../../utils/kde.js';
-
-// This computes the min, max from a list of numbers.
-function computeStatisticsForRuns(data: number[]) {
-  if (!data.length) {
-    return null;
-  }
-
-  const sorted = [...data].sort((a, b) => a - b);
-
-  return {
-    min: sorted[0],
-    max: sorted[sorted.length - 1],
-  };
-}
-
-// A simple wrapper to Math.min, resilient when one of the numbers is undefined or null.
-function computeMin(a?: number, b?: number) {
-  a ??= Infinity;
-  b ??= Infinity;
-  return Math.min(a, b);
-}
-
-// A simple wrapper to Math.max, resilient when one of the numbers is undefined or null.
-function computeMax(a?: number, b?: number) {
-  a ??= -Infinity;
-  b ??= -Infinity;
-  return Math.max(a, b);
-}
+import type { KdeAnalysis, ModeInfo } from '../../utils/kdeAnalysis';
 
 const CHART_HEIGHT = 340;
-const KDE_GRID_POINTS = 1024;
 const KDE_GRID = { left: 70, right: 70, top: 28, height: 155 };
 const SCATTER_GRID = { left: 70, right: 70, top: 250, height: 50 };
 
@@ -59,26 +25,6 @@ function tickFormatter(value: number): string {
   const rounded = Math.round(value);
   if (Math.abs(value - rounded) < 1e-9) return String(rounded);
   return value.toFixed(2);
-}
-
-// Per-series mode summary, suitable both for chart overlays and the blurb.
-type ModeInfo = {
-  peakLocs: number[];
-  fracs: number[];
-  letters: string[];
-};
-
-function computeModeInfo(x: number[], y: number[], vt: number): ModeInfo {
-  if (!x.length || !y.length) {
-    return { peakLocs: [], fracs: [], letters: [] };
-  }
-  const { peakLocs, boundaries } = fitModesFromKde(x, y, vt);
-  if (!peakLocs.length) {
-    return { peakLocs: [], fracs: [], letters: [] };
-  }
-  const fracs = areaFracs(x, y, boundaries);
-  const letters = assignLetters(peakLocs);
-  return { peakLocs, fracs, letters };
 }
 
 // Stagger levels (0, 1, 2 …) for peak labels: peaks closer than ~13% of the
@@ -108,79 +54,20 @@ function assignStaggerLevels(peaks: PeakRef[], xSpan: number): void {
   }
 }
 
-function quantileSorted(sorted: number[], q: number): number {
-  const pos = (sorted.length - 1) * q;
-  const base = Math.floor(pos);
-  const rest = pos - base;
-  if (sorted[base + 1] !== undefined) {
-    return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
-  }
-  return sorted[base];
-}
-
-// Silverman-Jones bandwidth approximation — produces a wider (smoother) kernel
-// than ISJ, which works better for the small sample counts typical of top-level
-// aggregated results.
-function approximateSJBandwidth(sorted: number[]): number {
-  const n = sorted.length;
-  if (n < 2) return sorted[0] * 0.0015;
-  const q25 = quantileSorted(sorted, 0.25);
-  const q75 = quantileSorted(sorted, 0.75);
-  const iqr = q75 - q25;
-  const mean = sorted.reduce((a, b) => a + b, 0) / n;
-  const std = Math.sqrt(
-    sorted.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0) / n,
-  );
-  const sigma = Math.min(std, iqr / 1.34);
-  return 0.9 * sigma * Math.pow(n, -1 / 5);
-}
-
-// ISJ bandwidth selection can fail to converge on tiny or degenerate samples
-// (few unique values, near-identical numbers). Fall back to Silverman's rule
-// in that case — coarser, but it never fails.
-// When bw is provided it is passed straight through to fftkde.
-function safeKde(values: number[], bw?: number) {
-  if (values.length < 2) return null;
-  try {
-    return fftkde(values, bw ?? 'ISJ', undefined, KDE_GRID_POINTS);
-  } catch {
-    return fftkde(values, 'silverman', undefined, KDE_GRID_POINTS);
-  }
-}
-
-// Linearly resample a uniform-grid KDE curve onto an arbitrary target x array.
-// Outside the source range we return 0: each KDE's grid is padded so its
-// density has already tapered to ≈0 at the edges.
-function resampleOnto(
-  srcX: ArrayLike<number>,
-  srcY: ArrayLike<number>,
-  targetX: number[],
-): number[] {
-  const n = srcX.length;
-  const lo = srcX[0];
-  const hi = srcX[n - 1];
-  const step = (hi - lo) / (n - 1);
-  const out = new Array<number>(targetX.length);
-  for (let i = 0; i < targetX.length; i++) {
-    const x = targetX[i];
-    if (x < lo || x > hi) {
-      out[i] = 0;
-      continue;
-    }
-    // Clamp the lower index so x === hi lands on j = n-2 with frac = 1.
-    const t = (x - lo) / step;
-    const j = Math.min(Math.floor(t), n - 2);
-    const frac = t - j;
-    out[i] = srcY[j] * (1 - frac) + srcY[j + 1] * frac;
-  }
-  return out;
+// Compute axis bounds (min/max with 5% padding) from raw runs.
+function axisBounds(baseValues: number[], newValues: number[]) {
+  const all = [...baseValues, ...newValues];
+  if (!all.length) return { min: 0, max: 1 };
+  const lo = Math.min(...all);
+  const hi = Math.max(...all);
+  return { min: lo * 0.95, max: hi * 1.05 };
 }
 
 function CommonGraph({
   baseValues,
   newValues,
   unit,
-  isSubtest,
+  analysis,
   vt,
   onVtChange,
 }: CommonGraphProps) {
@@ -188,48 +75,8 @@ function CommonGraph({
   const chartInstanceRef = useRef<ECharts | null>(null);
 
   const option: EChartsOption = useMemo(() => {
-    const statsForBase = computeStatisticsForRuns(baseValues);
-    const statsForNew = computeStatisticsForRuns(newValues);
-
-    // Compute the global min and max with some grace value.
-    const min = computeMin(statsForBase?.min, statsForNew?.min) * 0.95;
-    const max = computeMax(statsForBase?.max, statsForNew?.max) * 1.05;
-
-    // Top-level results have fewer, more spread-out samples — use the SJ
-    // approximation for a wider (smoother) bandwidth. Subtest results have
-    // more data so ISJ can select a tighter, more accurate bandwidth.
-    let baseBw: number | undefined;
-    let newBw: number | undefined;
-    if (!isSubtest) {
-      const baseSorted = [...baseValues].sort((a, b) => a - b);
-      const newSorted = [...newValues].sort((a, b) => a - b);
-      baseBw =
-        baseSorted.length >= 2 ? approximateSJBandwidth(baseSorted) : undefined;
-      newBw =
-        newSorted.length >= 2 ? approximateSJBandwidth(newSorted) : undefined;
-    }
-
-    const bKde = safeKde(baseValues, baseBw);
-    const nKde = safeKde(newValues, newBw);
-
-    // Build a shared x-grid covering both KDEs' ranges. Resampling both
-    // curves onto identical x positions is what lets the axis-trigger tooltip
-    // pick up Base AND New at the cursor's x position,
-    // instead of just one series or the other.
-    const xStart = computeMin(bKde?.x[0], nKde?.x[0]);
-    const xEnd = computeMax(
-      bKde?.x[bKde.x.length - 1],
-      nKde?.x[nKde.x.length - 1],
-    );
-    const sharedX: number[] = [];
-    if (Number.isFinite(xStart) && Number.isFinite(xEnd) && xEnd > xStart) {
-      for (let i = 0; i < KDE_GRID_POINTS; i++) {
-        sharedX.push(xStart + ((xEnd - xStart) * i) / (KDE_GRID_POINTS - 1));
-      }
-    }
-
-    const baseY = bKde ? resampleOnto(bKde.x, bKde.y, sharedX) : [];
-    const newY = nKde ? resampleOnto(nKde.x, nKde.y, sharedX) : [];
+    const { bKde, nKde, sharedX, baseY, newY, baseModes, newModes } = analysis;
+    const { min, max } = axisBounds(baseValues, newValues);
 
     const baseRunsDensity: [number, number][] = bKde
       ? sharedX.map((xCoord, i) => [xCoord, baseY[i]])
@@ -252,14 +99,6 @@ function CommonGraph({
       v,
       1 + (Math.random() - 0.5) * JITTER,
     ]);
-
-    // Mode detection on the shared-grid curves so peak x-coords align across series.
-    const baseModes = bKde
-      ? computeModeInfo(sharedX, baseY, vt)
-      : { peakLocs: [], fracs: [], letters: [] };
-    const newModes = nKde
-      ? computeModeInfo(sharedX, newY, vt)
-      : { peakLocs: [], fracs: [], letters: [] };
 
     // Assign vertical stagger levels across all peaks so labels don't collide.
     const allPeaks: PeakRef[] = [];
@@ -490,7 +329,7 @@ function CommonGraph({
         ...((modeOverlays ?? []) as []),
       ],
     };
-  }, [baseValues, newValues, unit, isSubtest, vt]);
+  }, [analysis, baseValues, newValues, unit]);
 
   useEffect(() => {
     if (!chartContainerRef.current) {
@@ -579,7 +418,7 @@ interface CommonGraphProps {
   baseValues: number[];
   newValues: number[];
   unit: string | null;
-  isSubtest: boolean;
+  analysis: KdeAnalysis;
   vt: number;
   onVtChange: (value: number) => void;
 }

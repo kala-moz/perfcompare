@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -6,11 +6,13 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 
 import CommonGraph from './CommonGraph';
+import KdeModesPanel from './KdeModesPanel';
 import { getStrategy } from '../../common/testVersions';
 import { Strings } from '../../resources/Strings';
 import { Spacing } from '../../styles';
 import type { CombinedResultsItemType } from '../../types/state';
 import { TestVersion } from '../../types/types';
+import { computeKdeAnalysis } from '../../utils/kdeAnalysis';
 
 const { singleRun } = Strings.components.expandableRow;
 
@@ -46,6 +48,17 @@ function RevisionRowExpandable(props: RevisionRowExpandableProps) {
   const newValues =
     newRunsReplicates && newRunsReplicates.length ? newRunsReplicates : newRuns;
 
+  const isSubtest = result.base_parent_signature !== null;
+
+  // KDE + mode detection runs once at this level so the chart and the blurb
+  // panel can't drift onto different grids or different mode counts.
+  const analysis = useMemo(
+    () => computeKdeAnalysis(baseValues, newValues, vt, isSubtest),
+    [baseValues, newValues, vt, isSubtest],
+  );
+
+  const showKdeBlurb = testVersion === 'mann-whitney-u';
+
   return (
     <Box
       component='section'
@@ -77,9 +90,17 @@ function RevisionRowExpandable(props: RevisionRowExpandableProps) {
                   baseValues={baseValues}
                   newValues={newValues}
                   unit={baseUnit || newUnit}
-                  isSubtest={result.base_parent_signature !== null}
+                  analysis={analysis}
                   vt={vt}
                   onVtChange={setVt}
+                />
+              )}
+              {showKdeBlurb && (
+                <KdeModesPanel
+                  baseValues={baseValues}
+                  newValues={newValues}
+                  unit={baseUnit || newUnit}
+                  analysis={analysis}
                 />
               )}
               {strategy.renderExpandedLeft(result)}

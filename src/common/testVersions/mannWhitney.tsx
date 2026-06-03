@@ -6,7 +6,6 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 
 import { MannWhitneyCompareMetrics } from '../../components/CompareResults/MannWhitneyCompareMetrics';
-import { ModeInterpretation } from '../../components/CompareResults/ModeInterpretation';
 import PValCliffsDeltaComp from '../../components/CompareResults/PValCliffsDeltaComp';
 import { StatisticsWarnings } from '../../components/CompareResults/StatisticsWarnings';
 import { FontSize } from '../../styles';
@@ -448,7 +447,6 @@ export const mannWhitneyStrategy = {
         {confidenceInterval && (
           <Alert severity='info'>{confidenceInterval}</Alert>
         )}
-        <ModeInterpretation result={mwResult} />
       </>
     );
   },

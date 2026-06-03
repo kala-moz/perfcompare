@@ -3,7 +3,19 @@ import type { EChartsOption, LineSeriesOption } from 'echarts';
 
 import CommonGraph from '../../components/CompareResults/CommonGraph';
 import { fftkde } from '../../utils/kde.js';
+import { computeKdeAnalysis } from '../../utils/kdeAnalysis';
 import { render } from '../utils/test-utils';
+
+// Compute the KDE/modes analysis the same way RevisionRowExpandable does,
+// so tests can pass a realistic `analysis` prop to CommonGraph. Must be called
+// AFTER the test sets up its fftkde mock — the analysis runs through fftkde.
+function analysisFor(
+  baseValues: number[],
+  newValues: number[],
+  { vt = 0.5, isSubtest = false }: { vt?: number; isSubtest?: boolean } = {},
+) {
+  return computeKdeAnalysis(baseValues, newValues, vt, isSubtest);
+}
 
 // Wrap React.useRef so a single test can substitute a stubbed ref whose
 // `.current` stays null — used to exercise the "no DOM element attached"
@@ -87,7 +99,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -133,7 +145,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -167,7 +179,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={true}
+        analysis={analysisFor([1, 2], [3, 4], { isSubtest: true })}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -199,7 +211,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2, 3]}
         newValues={[]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2, 3], [])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -243,7 +255,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -267,7 +279,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -311,7 +323,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -353,7 +365,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit={null}
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -389,7 +401,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -427,7 +439,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
@@ -459,7 +471,7 @@ describe('CommonGraph', () => {
         baseValues={[1, 2]}
         newValues={[3, 4]}
         unit='ms'
-        isSubtest={false}
+        analysis={analysisFor([1, 2], [3, 4])}
         vt={0.5}
         onVtChange={jest.fn()}
       />,
